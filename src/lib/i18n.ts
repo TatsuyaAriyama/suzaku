@@ -32,6 +32,9 @@ const strings = {
     noGeocoder:
       'MapTiler の API キーが未設定です。.env に VITE_MAPTILER_KEY を設定してください。',
     aligned: 'この方向です',
+    chooseOnMap: '地図で選ぶ',
+    pickOnMap: '地図で選ぶ',
+    dragToAim: '地図を動かして目的地を中央に合わせる',
   },
   en: {
     setDestination: 'Choose a destination',
@@ -61,6 +64,9 @@ const strings = {
     locating: 'Locating…',
     noGeocoder: 'MapTiler API key missing. Set VITE_MAPTILER_KEY in .env.',
     aligned: 'This way',
+    chooseOnMap: 'Pick on map',
+    pickOnMap: 'Pick on map',
+    dragToAim: 'Move the map to center your destination',
   },
 } as const;
 
