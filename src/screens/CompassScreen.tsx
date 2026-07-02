@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Compass } from '../components/Compass';
 import { ArrivalMark } from '../components/ArrivalMark';
 import { MiniMap } from '../components/MiniMap';
-import { useNavigation } from '../store/useNavigation';
+import { useNavigation, ARRIVE_THRESHOLD_M } from '../store/useNavigation';
 import { useDestination } from '../store/destinationStore';
 import { useHeading } from '../store/headingStore';
 import { useLocation } from '../store/locationStore';
@@ -66,6 +66,20 @@ export function CompassScreen({ onChooseDestination, onOpenSettings }: Props) {
         : formatDistanceImperial(nav.distanceM)
       : null;
 
+  // 目的地への近さ 0..1。到着圏(35m)で1、BREATHE_RANGE(500m)以遠で0。
+  // コンパスの"鼓動"が近づくほど速まる（数字を足さずリズムで伝える）。
+  const BREATHE_RANGE_M = 500;
+  const nearness =
+    nav.distanceM != null
+      ? Math.max(
+          0,
+          Math.min(
+            1,
+            1 - (nav.distanceM - ARRIVE_THRESHOLD_M) / (BREATHE_RANGE_M - ARRIVE_THRESHOLD_M)
+          )
+        )
+      : 0;
+
   return (
     <div className="compass-screen">
       <div className="topbar">
@@ -102,6 +116,7 @@ export function CompassScreen({ onChooseDestination, onOpenSettings }: Props) {
             aligned={nav.isAligned}
             offsetDeg={nav.offsetDeg}
             headingForLabels={headingTrue}
+            nearness={nearness}
           />
           {dist && (
             <div className="distance">

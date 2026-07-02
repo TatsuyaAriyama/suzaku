@@ -71,6 +71,19 @@ button {
   width: min(62vw, 40vh, 360px);
   height: min(62vw, 40vh, 360px);
   display: block;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+/* 目的地への近さで速さが変わる"鼓動"。近づくほど周期が短くなる。 */
+@keyframes compass-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.018);
+  }
 }
 
 /* ---- MiniMap（脇役） ---- */
@@ -447,5 +460,8 @@ button {
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
+  }
+  .compass {
+    animation: none !important;
   }
 }

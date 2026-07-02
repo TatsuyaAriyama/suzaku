@@ -26,6 +26,8 @@ interface Props {
   showCardinals?: boolean;
   /** 端末ヘディング（度, 表示用の方位ラベル回転）。 */
   headingForLabels?: number | null;
+  /** 目的地への近さ（0=遠い, 1=到着間近）。呼吸のリズムに使う。 */
+  nearness?: number | null;
 }
 
 export function Compass({
@@ -34,6 +36,7 @@ export function Compass({
   offsetDeg,
   showCardinals,
   headingForLabels,
+  nearness,
 }: Props) {
   const angle = useDampedAngle(needle);
   const southColor = aligned ? '#3a2b28' : INK;
@@ -42,6 +45,16 @@ export function Compass({
   const proximity =
     offsetDeg != null ? 1 - Math.min(Math.abs(offsetDeg), 60) / 60 : 0;
 
+  // 目的地への近さで"鼓動"の速さを変える。遠い→ゆっくり(4s)、間近→速い(1.2s)。
+  // 数字を足さず、リズムだけで「近づいている」感覚を伝える。
+  const near = nearness != null ? Math.max(0, Math.min(1, nearness)) : 0;
+  const breatheStyle =
+    near > 0.001
+      ? ({
+          animation: `compass-breathe ${(4 - 2.8 * near).toFixed(2)}s ease-in-out infinite`,
+        } as const)
+      : undefined;
+
   return (
     <svg
       className="compass"
@@ -49,6 +62,7 @@ export function Compass({
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label="コンパス"
+      style={breatheStyle}
     >
       {/* 外周の二重有機リング */}
       <path
