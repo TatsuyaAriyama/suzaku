@@ -1,10 +1,10 @@
 // コンパスの"脇役"ミニマップ。現在地・目的地・両者を結ぶ線を表示。
-// MapLibre GL + MapTiler。ブランドのオフホワイトに再スタイルする。
+// 地図スタイルは目的地ピッカーと共通の buildMapStyle()（朱のブランド配色）を使う。
 
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { hasMapTiler, mapStyleUrl, BRAND } from '../lib/maptiler';
+import { hasMap, buildMapStyle, ACCENT } from '../lib/mapStyle';
 import type { LatLon } from '../lib/geo';
 
 interface Props {
@@ -12,30 +12,6 @@ interface Props {
   destination: LatLon | null;
   /** 端末ヘディング（真北基準, 度）。現在地マーカーの向き表示に使う。 */
   heading: number | null;
-}
-
-// スタイル読込後、ブランド配色へ寄せる（"完全に再スタイル"の第一歩）。
-function restyleToBrand(map: maplibregl.Map) {
-  const style = map.getStyle();
-  if (!style?.layers) return;
-  for (const layer of style.layers) {
-    const id = layer.id;
-    try {
-      if (layer.type === 'background') {
-        map.setPaintProperty(id, 'background-color', BRAND.surface);
-      } else if (/water|ocean|sea|river|lake/i.test(id)) {
-        if (layer.type === 'fill') map.setPaintProperty(id, 'fill-color', BRAND.water);
-        if (layer.type === 'line') map.setPaintProperty(id, 'line-color', BRAND.water);
-      } else if (layer.type === 'fill' && /land|earth|background/i.test(id)) {
-        map.setPaintProperty(id, 'fill-color', BRAND.surface);
-      } else if (layer.type === 'symbol') {
-        map.setPaintProperty(id, 'text-color', BRAND.muted);
-        map.setPaintProperty(id, 'text-halo-color', BRAND.surface);
-      }
-    } catch {
-      // レイヤーによっては該当プロパティが無い → 無視
-    }
-  }
 }
 
 function meElement(): HTMLDivElement {
@@ -65,10 +41,10 @@ export function MiniMap({ me, destination, heading }: Props) {
 
   // 初期化（1回）
   useEffect(() => {
-    if (!containerRef.current || !hasMapTiler()) return;
+    if (!containerRef.current || !hasMap()) return;
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: mapStyleUrl(),
+      style: buildMapStyle(),
       center: me ? [me.lon, me.lat] : [139.767, 35.681],
       zoom: 13,
       attributionControl: false,
@@ -83,7 +59,6 @@ export function MiniMap({ me, destination, heading }: Props) {
     mapRef.current = map;
 
     map.on('load', () => {
-      restyleToBrand(map);
       readyRef.current = true;
       // 目的地への直線
       map.addSource('link', {
@@ -95,7 +70,7 @@ export function MiniMap({ me, destination, heading }: Props) {
         type: 'line',
         source: 'link',
         paint: {
-          'line-color': BRAND.accent,
+          'line-color': ACCENT,
           'line-width': 2,
           'line-dasharray': [2, 2],
           'line-opacity': 0.7,
@@ -188,7 +163,7 @@ export function MiniMap({ me, destination, heading }: Props) {
     }
   }, [heading]);
 
-  if (!hasMapTiler()) {
+  if (!hasMap()) {
     return <div className="minimap minimap--empty" />;
   }
   return <div className="minimap" ref={containerRef} />;
