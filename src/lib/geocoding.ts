@@ -53,3 +53,27 @@ export async function searchPlaces(
     lon: f.center[0],
   }));
 }
+
+/**
+ * 逆ジオコーディング。地図ピッカーで選んだ座標に最も近い地名を返す。
+ * 該当が無い / キー未設定なら座標文字列にフォールバックする。
+ */
+export async function reverseGeocode(
+  at: LatLon,
+  signal?: AbortSignal
+): Promise<string> {
+  const fallback = `${at.lat.toFixed(4)}, ${at.lon.toFixed(4)}`;
+  if (!KEY) return fallback;
+  const url = new URL(
+    `https://api.maptiler.com/geocoding/${at.lon},${at.lat}.json`
+  );
+  url.searchParams.set('key', KEY);
+  url.searchParams.set('language', 'ja');
+  url.searchParams.set('limit', '1');
+
+  const res = await fetch(url.toString(), { signal });
+  if (!res.ok) throw new Error(`geocoding ${res.status}`);
+  const data = (await res.json()) as { features: MTFeature[] };
+  const f = data.features[0];
+  return f?.text ?? f?.place_name ?? fallback;
+}

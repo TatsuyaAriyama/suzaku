@@ -21,15 +21,26 @@ interface Props {
   /** 針の回転角（度, 0=正面）。null なら中立。 */
   needle: number | null;
   aligned: boolean;
+  /** 目的地方向との符号付きズレ（度）。整列ターゲットの漸進表示に使う。 */
+  offsetDeg?: number | null;
   showCardinals?: boolean;
   /** 端末ヘディング（度, 表示用の方位ラベル回転）。 */
   headingForLabels?: number | null;
 }
 
-export function Compass({ needle, aligned, showCardinals, headingForLabels }: Props) {
-  const angle = useDampedAngle(needle, 5.5);
-  const northColor = aligned ? ACCENT : ACCENT;
+export function Compass({
+  needle,
+  aligned,
+  offsetDeg,
+  showCardinals,
+  headingForLabels,
+}: Props) {
+  const angle = useDampedAngle(needle);
   const southColor = aligned ? '#3a2b28' : INK;
+  // 整列への接近度（60°以内から効き始める）。ターゲット印がじわっと育ち、
+  // 「合ってきている」ことが色の反転前から分かる。
+  const proximity =
+    offsetDeg != null ? 1 - Math.min(Math.abs(offsetDeg), 60) / 60 : 0;
 
   return (
     <svg
@@ -48,14 +59,14 @@ export function Compass({ needle, aligned, showCardinals, headingForLabels }: Pr
         opacity={aligned ? 0.92 : 1}
       />
 
-      {/* 整列ターゲット（真上の小さな印） */}
+      {/* 整列ターゲット（真上の小さな印）。近づくほど育つ */}
       <circle
         cx="512"
         cy="228"
-        r="9"
+        r={aligned ? 12 : 9 + 3 * proximity}
         fill={aligned ? ACCENT : MUTED}
-        opacity={aligned ? 1 : 0.5}
-        style={{ transition: 'fill 300ms ease, opacity 300ms ease' }}
+        opacity={aligned ? 1 : 0.35 + 0.5 * proximity}
+        style={{ transition: 'fill 300ms ease, opacity 300ms ease, r 300ms ease' }}
       />
 
       {/* 方位ラベル（オプション、端末ヘディングに合わせて回転） */}
@@ -90,11 +101,7 @@ export function Compass({ needle, aligned, showCardinals, headingForLabels }: Pr
           fill={southColor}
           style={{ transition: 'fill 400ms ease' }}
         />
-        <path
-          d={NEEDLE_NORTH}
-          fill={northColor}
-          style={{ transition: 'fill 400ms ease' }}
-        />
+        <path d={NEEDLE_NORTH} fill={ACCENT} />
         {/* 中心の留め */}
         <circle cx="512" cy="512" r="16" fill={INK} />
         <circle cx="512" cy="512" r="6" fill="#FCFBF8" />

@@ -1,9 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { searchPlaces, hasGeocoder, type Place } from '../lib/geocoding';
+import { hasMap } from '../lib/mapStyle';
 import { useDestination, type Destination } from '../store/destinationStore';
 import { useLocation } from '../store/locationStore';
 import { useSettings } from '../store/settingsStore';
 import { t } from '../lib/i18n';
+
+// 地図（maplibre-gl）は目的地選択を開いたときだけ読み込む。
+// コンパス本体はオフライン動作のため初期バンドルに含めない。
+const MapPickerScreen = lazy(() =>
+  import('./MapPickerScreen').then((m) => ({ default: m.MapPickerScreen }))
+);
 
 interface Props {
   onDone: () => void;
@@ -13,6 +20,7 @@ export function DestinationScreen({ onDone }: Props) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Place[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [mapOpen, setMapOpen] = useState(false);
   const setDestination = useDestination((s) => s.setDestination);
   const history = useDestination((s) => s.history);
   const fix = useLocation((s) => s.fix);
@@ -48,6 +56,14 @@ export function DestinationScreen({ onDone }: Props) {
     onDone();
   };
 
+  if (mapOpen) {
+    return (
+      <Suspense fallback={<div className="sheet" />}>
+        <MapPickerScreen onDone={onDone} onBack={() => setMapOpen(false)} />
+      </Suspense>
+    );
+  }
+
   return (
     <div className="sheet">
       <div className="sheet__head">
@@ -65,6 +81,13 @@ export function DestinationScreen({ onDone }: Props) {
         autoFocus
         enterKeyHint="search"
       />
+
+      {hasMap() && (
+        <button className="btn-outline map-open" onClick={() => setMapOpen(true)}>
+          <MapGlyph />
+          {t('chooseOnMap', lang)}
+        </button>
+      )}
 
       {!hasGeocoder() && <div className="notice">{t('noGeocoder', lang)}</div>}
       {error && <div className="notice">{error}</div>}
@@ -96,5 +119,14 @@ export function DestinationScreen({ onDone }: Props) {
         )
       )}
     </div>
+  );
+}
+
+function MapGlyph() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M12 21c4-5 7-8.5 7-12a7 7 0 0 0-14 0c0 3.5 3 7 7 12z" strokeLinejoin="round" />
+      <circle cx="12" cy="9" r="2.5" />
+    </svg>
   );
 }
