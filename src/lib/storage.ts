@@ -23,6 +23,7 @@ export async function saveJSON<T>(key: string, value: T): Promise<void> {
 export const KEYS = {
   destination: 'ake.destination',
   history: 'ake.history',
+  favorites: 'ake.favorites',
   settings: 'ake.settings',
   onboarded: 'ake.onboarded',
 } as const;
