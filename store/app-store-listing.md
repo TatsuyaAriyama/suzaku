@@ -126,14 +126,20 @@ In App Store Connect → App Privacy, answer:
 
 ## Screenshots (required sizes)
 
-Provide at least one set. Capture on Simulator or device.
-
 - 6.9" (iPhone 16 Pro Max) — 1320 × 2868 — **required**
 - 6.5" (iPhone 11 Pro Max / XS Max) — 1242 × 2688 — recommended fallback
 
-Suggested shots (5):
-1. Onboarding — "Welcome to Tokyo"
-2. Destination search with results
-3. Nearby categories (chips + list)
-4. Full-screen compass pointing to a destination
-5. Arrival mark ("Arrived")
+### Captured set — `store/screenshots/` (1320 × 2868, 6.9")
+
+Captured in English on an iPhone 17 Pro Max simulator (same 6.9" canvas):
+
+1. `01-welcome.png` — Onboarding, "Welcome to Tokyo"
+2. `02-home.png` — Home: compass + "Choose a destination" + Tokyo map
+3. `03-search.png` — Destination search ("Tokyo Tower") with live results
+4. `04-nearby.png` — Nearby Food category (distance-sorted list)
+5. `05-compass.png` — Compass pointing to a destination (53 m)
+6. `06-arrived.png` — Arrival mark ("Arrived")
+
+Upload directly to App Store Connect. Order 1→6 tells the full story; pick any
+5+ for the 6.9" slot. For the 6.5" slot, re-run the capture on an iPhone 11
+Pro Max simulator, or let App Store Connect scale the 6.9" set.
