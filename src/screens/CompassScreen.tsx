@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Compass } from '../components/Compass';
 import { ArrivalMark } from '../components/ArrivalMark';
+import { MiniMap } from '../components/MiniMap';
 import { useNavigation } from '../store/useNavigation';
 import { useDestination } from '../store/destinationStore';
 import { useHeading } from '../store/headingStore';
@@ -80,6 +81,7 @@ export function CompassScreen({ onChooseDestination, onOpenSettings }: Props) {
         </button>
       </div>
 
+      <div className="compass-region">
       {!dest ? (
         <div className="arrival">
           <Compass needle={null} aligned={false} />
@@ -123,6 +125,8 @@ export function CompassScreen({ onChooseDestination, onOpenSettings }: Props) {
           </div>
         </>
       )}
+      </div>
+      <MiniMap me={fix} destination={dest} heading={headingTrue} />
     </div>
   );
 }
