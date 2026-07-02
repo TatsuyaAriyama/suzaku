@@ -8,8 +8,12 @@ import { useHeading } from '../store/headingStore';
 import { useLocation } from '../store/locationStore';
 import { useSettings } from '../store/settingsStore';
 import { formatDistance, formatDistanceImperial } from '../lib/geo';
-import { tapLight, arriveBuzz } from '../lib/haptics';
+import { tapLight, tapMedium, arriveBuzz } from '../lib/haptics';
 import { t, type StringKey } from '../lib/i18n';
+
+// 距離の節目（m, 降順）。内側へ横切るたびに軽い触覚で「近づいた」を知らせる。
+// ポケットの中でも進捗が分かるように。50m 以内は強め。
+const DISTANCE_MILESTONES = [500, 200, 100, 50];
 
 /** 針の指す先を言葉でも伝える。一瞥の分かりやすさは針＋ことばの二重表現で担保する。 */
 function turnCueKey(offsetDeg: number): StringKey {
@@ -36,6 +40,8 @@ export function CompassScreen({ onChooseDestination, onOpenSettings }: Props) {
 
   const wasAligned = useRef(false);
   const wasArrived = useRef(false);
+  const bandRef = useRef(0);
+  const bandInitRef = useRef(false);
 
   // 整列トグルでハプティクス（立ち上がりのみ）
   useEffect(() => {
@@ -53,6 +59,35 @@ export function CompassScreen({ onChooseDestination, onOpenSettings }: Props) {
     }
     wasArrived.current = nav.hasArrived;
   }, [nav.hasArrived, haptics]);
+
+  // 目的地が変わったら距離帯の記憶をリセット（新しい旅として再カウント）
+  useEffect(() => {
+    bandRef.current = 0;
+    bandInitRef.current = false;
+  }, [dest?.lat, dest?.lon]);
+
+  // 距離の節目を内側へ横切ったら触覚で知らせる。ヒステリシス(×1.12)で明滅防止。
+  useEffect(() => {
+    const d = nav.distanceM;
+    if (d == null || nav.hasArrived) return;
+
+    let band = bandRef.current;
+    while (band < DISTANCE_MILESTONES.length && d < DISTANCE_MILESTONES[band]) band++;
+    while (band > 0 && d > DISTANCE_MILESTONES[band - 1] * 1.12) band--;
+
+    // 初回は現在の距離帯を無音で記録（購読開始時の連打を避ける）
+    if (!bandInitRef.current) {
+      bandInitRef.current = true;
+      bandRef.current = band;
+      return;
+    }
+
+    if (band > bandRef.current) {
+      // 50m 圏(最内)だけ強め、それ以外は軽く
+      if (haptics) void (band >= DISTANCE_MILESTONES.length ? tapMedium() : tapLight());
+    }
+    bandRef.current = band;
+  }, [nav.distanceM, nav.hasArrived, haptics]);
 
   const headingTrue =
     smoothedMagnetic != null

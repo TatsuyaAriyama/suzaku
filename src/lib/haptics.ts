@@ -8,6 +8,14 @@ export async function tapLight() {
   }
 }
 
+export async function tapMedium() {
+  try {
+    await Haptics.impact({ style: ImpactStyle.Medium });
+  } catch {
+    if (navigator.vibrate) navigator.vibrate(18);
+  }
+}
+
 export async function arriveBuzz() {
   try {
     await Haptics.notification({ type: NotificationType.Success });
