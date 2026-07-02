@@ -1,7 +1,7 @@
 {
   "name": "ake",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "cap:sync": "cap sync",
     "cap:ios": "cap open ios",
-    "cap:android": "cap open android"
+    "cap:android": "cap open android",
+    "assets:prepare": "node scripts/rasterizeAssets.mjs",
+    "assets:generate": "capacitor-assets generate --iconBackgroundColor '#FCFBF8' --iconBackgroundColorDark '#FCFBF8' --splashBackgroundColor '#FCFBF8' --splashBackgroundColorDark '#FCFBF8'"
   },
   "dependencies": {
     "@capacitor/core": "^6.2.0",
@@ -24,6 +26,7 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^6.2.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

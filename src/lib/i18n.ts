@@ -29,6 +29,12 @@ const strings = {
     onboardTitle: '朱',
     onboardBody:
       '目的地の方向をコンパスで指し示します。現在地と方位センサーを使います。',
+    welcomeTitle: 'ようこそ、東京へ',
+    welcomeBody:
+      '街歩きのためのポケットコンパス。駅・レストラン・お店まで、地図を読まずに方向がわかります。目的地を決めれば、あとはオフラインでも大丈夫。',
+    welcomeContinue: 'はじめる',
+    language: '言語',
+    compassLabel: 'コンパス',
     grantPermissions: 'はじめる',
     permissionDenied: '権限が必要です。設定から許可してください。',
     locating: '現在地を取得中…',
@@ -84,6 +90,12 @@ const strings = {
     onboardTitle: 'Ake',
     onboardBody:
       'A compass that points to your destination. Uses your location and heading sensor.',
+    welcomeTitle: 'Welcome to Tokyo',
+    welcomeBody:
+      'Your pocket compass for exploring the city. It points the way to any station, restaurant, or shop — no map-reading required. Once you pick a destination, it even works offline.',
+    welcomeContinue: 'Get started',
+    language: 'Language',
+    compassLabel: 'Compass',
     grantPermissions: 'Get started',
     permissionDenied: 'Permission required. Please allow it in Settings.',
     locating: 'Locating…',

@@ -6,8 +6,16 @@ interface Props {
 }
 
 export function SettingsScreen({ onDone }: Props) {
-  const { units, northRef, haptics, lang, setUnits, setNorthRef, setHaptics } =
-    useSettings();
+  const {
+    units,
+    northRef,
+    haptics,
+    lang,
+    setUnits,
+    setNorthRef,
+    setHaptics,
+    setLang,
+  } = useSettings();
 
   return (
     <div className="sheet">
@@ -16,6 +24,18 @@ export function SettingsScreen({ onDone }: Props) {
           ‹ {t('back', lang)}
         </button>
         <div className="sheet__title">{t('settings', lang)}</div>
+      </div>
+
+      <div className="setting-row">
+        <span className="setting-row__label">{t('language', lang)}</span>
+        <div className="segmented">
+          <button data-active={lang === 'ja'} onClick={() => setLang('ja')}>
+            日本語
+          </button>
+          <button data-active={lang === 'en'} onClick={() => setLang('en')}>
+            English
+          </button>
+        </div>
       </div>
 
       <div className="setting-row">

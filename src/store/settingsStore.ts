@@ -15,6 +15,7 @@ interface SettingsState {
   setUnits: (u: Units) => void;
   setNorthRef: (n: NorthRef) => void;
   setHaptics: (h: boolean) => void;
+  setLang: (l: Lang) => void;
 }
 
 interface Persisted {
@@ -60,6 +61,10 @@ export const useSettings = create<SettingsState>((set, get) => ({
   },
   setHaptics(haptics) {
     set({ haptics });
+    persist(get());
+  },
+  setLang(lang) {
+    set({ lang });
     persist(get());
   },
 }));

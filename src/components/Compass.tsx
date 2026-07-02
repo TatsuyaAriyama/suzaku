@@ -2,6 +2,8 @@
 // 針は目的地方向を指す（自分が向いている方向を「上」とした相対表示）。
 
 import { useDampedAngle } from '../lib/useDampedAngle';
+import { useSettings } from '../store/settingsStore';
+import { t } from '../lib/i18n';
 
 const INK = '#181311';
 const ACCENT = '#9F3327';
@@ -39,6 +41,7 @@ export function Compass({
   nearness,
 }: Props) {
   const angle = useDampedAngle(needle);
+  const lang = useSettings((s) => s.lang);
   const southColor = aligned ? '#3a2b28' : INK;
   // 整列への接近度（60°以内から効き始める）。ターゲット印がじわっと育ち、
   // 「合ってきている」ことが色の反転前から分かる。
@@ -61,7 +64,7 @@ export function Compass({
       viewBox="0 0 1024 1024"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="コンパス"
+      aria-label={t('compassLabel', lang)}
       style={breatheStyle}
     >
       {/* 外周の二重有機リング */}
