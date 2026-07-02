@@ -8,7 +8,15 @@ import { useLocation } from '../store/locationStore';
 import { useSettings } from '../store/settingsStore';
 import { formatDistance, formatDistanceImperial } from '../lib/geo';
 import { tapLight, arriveBuzz } from '../lib/haptics';
-import { t } from '../lib/i18n';
+import { t, type StringKey } from '../lib/i18n';
+
+/** 針の指す先を言葉でも伝える。一瞥の分かりやすさは針＋ことばの二重表現で担保する。 */
+function turnCueKey(offsetDeg: number): StringKey {
+  const abs = Math.abs(offsetDeg);
+  if (abs > 135) return 'behind';
+  if (abs > 30) return offsetDeg > 0 ? 'turnRight' : 'turnLeft';
+  return offsetDeg > 0 ? 'turnSlightRight' : 'turnSlightLeft';
+}
 
 interface Props {
   onChooseDestination: () => void;
@@ -90,6 +98,7 @@ export function CompassScreen({ onChooseDestination, onOpenSettings }: Props) {
           <Compass
             needle={nav.needle}
             aligned={nav.isAligned}
+            offsetDeg={nav.offsetDeg}
             headingForLabels={headingTrue}
           />
           {dist && (
@@ -108,7 +117,9 @@ export function CompassScreen({ onChooseDestination, onOpenSettings }: Props) {
                   ? <span className="aligned-note">{t('aligned', lang)}</span>
                   : lowAccuracy
                     ? t('calibrate', lang)
-                    : t('holdFlat', lang)}
+                    : nav.offsetDeg != null
+                      ? t(turnCueKey(nav.offsetDeg), lang)
+                      : t('holdFlat', lang)}
           </div>
         </>
       )}

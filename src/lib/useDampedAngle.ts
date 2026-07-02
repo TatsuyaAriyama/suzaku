@@ -6,9 +6,11 @@ import { UnwrappedAngle } from './smoothing';
 
 /**
  * @param target 目標角（0..360, null なら停止）
- * @param stiffness 追従の速さ（大きいほど速い）
+ * @param stiffness 追従の速さ（大きいほど速い）。
+ *   ランプ追従の定常遅れ ≈ 2·角速度/stiffness。上流が 1€ フィルタで
+ *   ジッターを処理する前提で、遅延最小のため高めが既定。
  */
-export function useDampedAngle(target: number | null, stiffness = 6): number {
+export function useDampedAngle(target: number | null, stiffness = 12): number {
   const [display, setDisplay] = useState(0);
   const unwrap = useRef(new UnwrappedAngle());
   const posRef = useRef(0);
@@ -17,6 +19,7 @@ export function useDampedAngle(target: number | null, stiffness = 6): number {
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef<number>(0);
   const snappedRef = useRef(false);
+  const lastSetRef = useRef(0);
 
   useEffect(() => {
     targetRef.current = target;
@@ -37,6 +40,7 @@ export function useDampedAngle(target: number | null, stiffness = 6): number {
           posRef.current = goal;
           velRef.current = 0;
           snappedRef.current = true;
+          lastSetRef.current = goal;
           setDisplay(goal);
         } else {
           // クリティカルダンプのばね
@@ -45,7 +49,11 @@ export function useDampedAngle(target: number | null, stiffness = 6): number {
           const a = k * (goal - posRef.current) - c * velRef.current;
           velRef.current += a * dt;
           posRef.current += velRef.current * dt;
-          setDisplay(posRef.current);
+          // 収束後は再レンダーしない（静止時に 60fps で描画し続けない）
+          if (Math.abs(posRef.current - lastSetRef.current) > 0.02) {
+            lastSetRef.current = posRef.current;
+            setDisplay(posRef.current);
+          }
         }
       }
       rafRef.current = requestAnimationFrame(tick);

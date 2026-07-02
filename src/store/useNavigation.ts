@@ -1,12 +1,16 @@
-// 派生値のセレクタ。bearing / distance / needle / isAligned / hasArrived。
+// 派生値のセレクタ。bearing / distance / needle / offset / isAligned / hasArrived。
 
+import { useRef } from 'react';
 import { useLocation } from './locationStore';
 import { useHeading } from './headingStore';
 import { useDestination } from './destinationStore';
 import { useSettings } from './settingsStore';
 import { bearing, distance, angleDelta, normalize360, type LatLon } from '../lib/geo';
 
-export const ALIGN_THRESHOLD_DEG = 10; // ±10° で整列
+// 整列はヒステリシス付き: ±10° で入り、±15° を超えるまで出ない。
+// 境界での明滅とハプティクス連打を防ぐ。
+export const ALIGN_ENTER_DEG = 10;
+export const ALIGN_EXIT_DEG = 15;
 export const ARRIVE_THRESHOLD_M = 35; // 35m 以内で到着
 
 export interface NavDerived {
@@ -16,6 +20,8 @@ export interface NavDerived {
   distanceM: number | null;
   /** 針の回転角（度）。0 = 正面（目的地方向が真上）。時計回り正。 */
   needle: number | null;
+  /** 目的地方向との符号付きズレ（−180..180°）。正 = 右に回れば合う。 */
+  offsetDeg: number | null;
   isAligned: boolean;
   hasArrived: boolean;
 }
@@ -26,17 +32,20 @@ export function useNavigation(): NavDerived {
   const smoothedMagnetic = useHeading((s) => s.smoothedMagnetic);
   const declination = useHeading((s) => s.declination);
   const northRef = useSettings((s) => s.northRef);
+  const alignedRef = useRef(false);
 
   const hasDestination = Boolean(dest);
   const hasFix = Boolean(fix);
 
   if (!fix || !dest) {
+    alignedRef.current = false;
     return {
       hasDestination,
       hasFix,
       bearingTrue: null,
       distanceM: null,
       needle: null,
+      offsetDeg: null,
       isAligned: false,
       hasArrived: false,
     };
@@ -48,6 +57,7 @@ export function useNavigation(): NavDerived {
   const hasArrived = distanceM <= ARRIVE_THRESHOLD_M;
 
   let needle: number | null = null;
+  let offsetDeg: number | null = null;
   let isAligned = false;
 
   if (smoothedMagnetic != null) {
@@ -62,7 +72,12 @@ export function useNavigation(): NavDerived {
     // 針 = (目的地方位 − 端末ヘディング) を 0..360 に。
     const raw = normalize360(targetBearing - deviceHeading);
     needle = raw;
-    isAligned = Math.abs(angleDelta(raw, 0)) <= ALIGN_THRESHOLD_DEG;
+    offsetDeg = angleDelta(raw, 0);
+    const abs = Math.abs(offsetDeg);
+    isAligned = alignedRef.current ? abs <= ALIGN_EXIT_DEG : abs <= ALIGN_ENTER_DEG;
+    alignedRef.current = isAligned;
+  } else {
+    alignedRef.current = false;
   }
 
   return {
@@ -71,6 +86,7 @@ export function useNavigation(): NavDerived {
     bearingTrue,
     distanceM,
     needle,
+    offsetDeg,
     isAligned,
     hasArrived,
   };
