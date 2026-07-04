@@ -14,7 +14,7 @@
 	<key>NSMotionUsageDescription</key>
 	<string>The heading sensor is used to orient the compass.</string>
 	<key>CFBundleDisplayName</key>
-        <string>朱</string>
+        <string>朱雀</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

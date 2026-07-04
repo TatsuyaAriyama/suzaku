@@ -1,5 +1,5 @@
 <!--
-  朱 Ake — Android 権限。
+  朱雀 Suzaku — Android 権限。
   `npx cap add android` 後、android/app/src/main/AndroidManifest.xml の
   <manifest> 直下（<application> の外）へ追記する。
   実行時権限フローは @capacitor/geolocation の requestPermissions が処理する。

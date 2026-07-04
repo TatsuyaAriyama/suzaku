@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  朱 Ake — Apple プライバシーマニフェスト。
+  朱雀 Suzaku — Apple プライバシーマニフェスト。
   `npx cap add ios` 後、App/App/ 直下へ追加し、Xcode の
   「Copy Bundle Resources」に含める（ターゲットに追加すれば自動で入る）。
 

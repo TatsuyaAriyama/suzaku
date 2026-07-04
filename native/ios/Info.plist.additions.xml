@@ -1,5 +1,5 @@
 <!--
-  朱 Ake — iOS Info.plist に追記するキー。
+  朱雀 Suzaku — iOS Info.plist に追記するキー。
   `npx cap add ios` 後、App/App/Info.plist の <dict> 内へマージする。
   文言本体は Base.lproj / ja.lproj の InfoPlist.strings でローカライズ済み
   （ここではフォールバック用の英語を入れておく）。

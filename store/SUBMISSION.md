@@ -1,6 +1,6 @@
-# Ake — iOS Submission Checklist
+# Suzaku — iOS Submission Checklist
 
-App: **Ake — Tokyo Compass** · Bundle ID `com.tatsuyaariyama.ake`
+App: **Suzaku — Tokyo Compass** (朱雀) · Bundle ID `com.tatsuyaariyama.ake`
 Target: **v1.0.0 (build 1)**
 
 Requires macOS with Xcode + CocoaPods installed. Run from the repo root.
@@ -62,7 +62,7 @@ npm run cap:ios          # cap open ios
 - Signing & Capabilities → select your Team, automatic signing.
 - General → **Version** `1.0.0`, **Build** `1`.
 - Deployment target: iOS 14.0 or later (Capacitor 6 default is fine).
-- Confirm Display Name shows correctly (朱 / Ake).
+- Confirm Display Name shows correctly (朱雀 / Suzaku).
 
 ## 7. Archive & upload
 

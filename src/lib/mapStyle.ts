@@ -1,4 +1,4 @@
-// MapLibre 再スタイル。朱（Ake）のデザイン言語（オフホワイト + ink + accent + muted）に
+// MapLibre 再スタイル。朱雀（Suzaku）のデザイン言語（オフホワイト + ink + accent + muted）に
 // 合わせて MapTiler ベクタータイルを最小限に塗り直した地図スタイル。
 // 地図は目的地選択のためだけに使う（コンパス本体はオフライン動作）。
 
@@ -19,13 +19,13 @@ export function hasMap(): boolean {
 }
 
 /**
- * MapTiler の v3 ベクタータイルを朱の3色 + 補助グレーで塗り直した style を返す。
+ * MapTiler の v3 ベクタータイルを朱雀の3色 + 補助グレーで塗り直した style を返す。
  * 「変化させる、足さない」— 面・線・文字だけに絞り、色数を増やさない。
  */
 export function buildMapStyle(): StyleSpecification {
   return {
     version: 8,
-    name: 'Ake',
+    name: 'Suzaku',
     glyphs: `https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key=${KEY}`,
     sources: {
       openmaptiles: {

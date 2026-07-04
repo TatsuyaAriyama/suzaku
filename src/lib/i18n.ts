@@ -26,7 +26,7 @@ const strings = {
     haptics: 'ハプティクス',
     on: 'オン',
     off: 'オフ',
-    onboardTitle: '朱',
+    onboardTitle: '朱雀',
     onboardBody:
       '目的地の方向をコンパスで指し示します。現在地と方位センサーを使います。',
     welcomeTitle: 'ようこそ、東京へ',
@@ -87,7 +87,7 @@ const strings = {
     haptics: 'Haptics',
     on: 'On',
     off: 'Off',
-    onboardTitle: 'Ake',
+    onboardTitle: 'Suzaku',
     onboardBody:
       'A compass that points to your destination. Uses your location and heading sensor.',
     welcomeTitle: 'Welcome to Tokyo',

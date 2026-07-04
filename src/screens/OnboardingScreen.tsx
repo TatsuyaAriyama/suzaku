@@ -55,7 +55,7 @@ export function OnboardingScreen({ onGranted }: Props) {
         <img
           className="onboard__icon"
           src={`${import.meta.env.BASE_URL}icon.svg`}
-          alt="朱 Ake"
+          alt="朱雀 Suzaku"
         />
         <div className="onboard__welcome">{t('welcomeTitle', lang)}</div>
         <div className="onboard__title">{t('onboardTitle', lang)}</div>

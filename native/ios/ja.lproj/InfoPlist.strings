@@ -1,4 +1,4 @@
-/* 朱 Ake — iOS 権限文言（日本語） */
+/* 朱雀 Suzaku — iOS 権限文言（日本語） */
 /* `npx cap add ios` 後、App/App/ja.lproj/ にコピーして Xcode の Localization に追加する */
 
 "NSLocationWhenInUseUsageDescription" = "目的地の方向を計算するために現在地を使用します。";
