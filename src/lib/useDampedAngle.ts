@@ -20,10 +20,22 @@ export function useDampedAngle(target: number | null, stiffness = 12): number {
   const lastRef = useRef<number>(0);
   const snappedRef = useRef(false);
   const lastSetRef = useRef(0);
+  // モーション過敏設定時は針をスイープさせず即座にスナップさせる（方向は伝える）。
+  const reducedRef = useRef(false);
 
   useEffect(() => {
     targetRef.current = target;
   }, [target]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    reducedRef.current = mq.matches;
+    const onChange = () => {
+      reducedRef.current = mq.matches;
+    };
+    mq.addEventListener?.('change', onChange);
+    return () => mq.removeEventListener?.('change', onChange);
+  }, []);
 
   useEffect(() => {
     const tick = (now: number) => {
@@ -42,6 +54,14 @@ export function useDampedAngle(target: number | null, stiffness = 12): number {
           snappedRef.current = true;
           lastSetRef.current = goal;
           setDisplay(goal);
+        } else if (reducedRef.current) {
+          // モーション過敏設定: スイープせず目標へ即スナップ（向きは即座に伝える）
+          if (Math.abs(goal - lastSetRef.current) > 0.02) {
+            posRef.current = goal;
+            velRef.current = 0;
+            lastSetRef.current = goal;
+            setDisplay(goal);
+          }
         } else {
           // クリティカルダンプのばね
           const k = stiffness * stiffness;

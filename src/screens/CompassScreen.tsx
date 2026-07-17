@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Compass } from '../components/Compass';
 import { ArrivalMark } from '../components/ArrivalMark';
-import { MiniMap } from '../components/MiniMap';
+import { hasMap } from '../lib/mapStyle';
 import { useNavigation, ARRIVE_THRESHOLD_M } from '../store/useNavigation';
 import { useDestination } from '../store/destinationStore';
 import { useHeading } from '../store/headingStore';
@@ -10,6 +10,12 @@ import { useSettings } from '../store/settingsStore';
 import { formatDistance, formatDistanceImperial } from '../lib/geo';
 import { tapLight, tapMedium, arriveBuzz } from '../lib/haptics';
 import { t, type StringKey } from '../lib/i18n';
+
+// ミニマップ（脇役）は遅延ロード。maplibre-gl(〜800KB) を初期バンドルから外し、
+// コンパス本体（オフラインで動く主役）を最速で描画・起動させる。
+const MiniMap = lazy(() =>
+  import('../components/MiniMap').then((m) => ({ default: m.MiniMap }))
+);
 
 // 距離の節目（m, 降順）。内側へ横切るたびに軽い触覚で「近づいた」を知らせる。
 // ポケットの中でも進捗が分かるように。50m 以内は強め。
@@ -34,7 +40,9 @@ export function CompassScreen({ onChooseDestination, onOpenSettings }: Props) {
   const lowAccuracy = useHeading((s) => s.lowAccuracy);
   const smoothedMagnetic = useHeading((s) => s.smoothedMagnetic);
   const declination = useHeading((s) => s.declination);
+  const headingPermission = useHeading((s) => s.permission);
   const locError = useLocation((s) => s.error);
+  const locPermission = useLocation((s) => s.permission);
   const fix = useLocation((s) => s.fix);
   const { units, haptics, lang, northRef, glance, toggleGlance } = useSettings();
 
@@ -169,26 +177,37 @@ export function CompassScreen({ onChooseDestination, onOpenSettings }: Props) {
           )}
           {!glance && dest && <div className="dest-name">{dest.name}</div>}
           {!glance && (
-            <div className="hint">
-              {locError
+            <div className="hint" aria-live="polite">
+              {locPermission === 'denied'
                 ? t('permissionDenied', lang)
-                : !fix
-                  ? t('locating', lang)
-                  : nav.isAligned
-                    ? <span className="aligned-note">{t('aligned', lang)}</span>
-                    : lowAccuracy
-                      ? t('calibrate', lang)
-                      : nav.offsetDeg != null
-                        ? t(turnCueKey(nav.offsetDeg), lang)
-                        : t('holdFlat', lang)}
+                : headingPermission === 'denied' || headingPermission === 'unsupported'
+                  ? t('compassUnavailable', lang)
+                  : !fix
+                    ? locError
+                      ? t('signalLost', lang)
+                      : t('locating', lang)
+                    : nav.isAligned
+                      ? <span className="aligned-note">{t('aligned', lang)}</span>
+                      : lowAccuracy
+                        ? t('calibrate', lang)
+                        : nav.offsetDeg != null
+                          ? t(turnCueKey(nav.offsetDeg), lang)
+                          : t('holdFlat', lang)}
             </div>
           )}
         </>
       )}
       </div>
-      {!glance && (
-        <MiniMap me={fix} destination={dest} heading={headingTrue} lang={lang} />
-      )}
+      {!glance &&
+        (hasMap() ? (
+          // 地図キーがある時だけ maplibre チャンクを読み込む。読み込み中は空の枠を出す。
+          <Suspense fallback={<div className="minimap minimap--empty" />}>
+            <MiniMap me={fix} destination={dest} heading={headingTrue} lang={lang} />
+          </Suspense>
+        ) : (
+          // キー未設定なら maplibre を一切読み込まない。
+          <div className="minimap minimap--empty" />
+        ))}
     </div>
   );
 }

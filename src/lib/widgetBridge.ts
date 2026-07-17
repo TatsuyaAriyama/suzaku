@@ -25,7 +25,6 @@ export interface WidgetSnapshot {
 
 interface SuzakuWidgetPlugin {
   update(snapshot: WidgetSnapshot): Promise<void>;
-  clear(): Promise<void>;
 }
 
 const SuzakuWidget = registerPlugin<SuzakuWidgetPlugin>('SuzakuWidget');
@@ -39,15 +38,5 @@ export async function updateWidgetSnapshot(snapshot: WidgetSnapshot): Promise<vo
     await SuzakuWidget.update(snapshot);
   } catch {
     // プラグイン未組込み等は無視（コンパス本体には影響しない）。
-  }
-}
-
-/** ウィジェット表示をクリア（目的地なし相当）。 */
-export async function clearWidgetSnapshot(): Promise<void> {
-  if (!isNative) return;
-  try {
-    await SuzakuWidget.clear();
-  } catch {
-    // ignore
   }
 }
