@@ -11,7 +11,10 @@ import { bearing, distance, angleDelta, normalize360, type LatLon } from '../lib
 // 境界での明滅とハプティクス連打を防ぐ。
 export const ALIGN_ENTER_DEG = 10;
 export const ALIGN_EXIT_DEG = 15;
-export const ARRIVE_THRESHOLD_M = 35; // 35m 以内で到着
+// 到着もヒステリシス付き: 35m 以内で入り、45m を超えるまで出ない。
+// GPS ジッターで境界を跨いで到着表示が明滅し、到着ハプティクスが連打するのを防ぐ。
+export const ARRIVE_THRESHOLD_M = 35;
+export const ARRIVE_EXIT_M = 45;
 
 export interface NavDerived {
   hasDestination: boolean;
@@ -33,12 +36,14 @@ export function useNavigation(): NavDerived {
   const declination = useHeading((s) => s.declination);
   const northRef = useSettings((s) => s.northRef);
   const alignedRef = useRef(false);
+  const arrivedRef = useRef(false);
 
   const hasDestination = Boolean(dest);
   const hasFix = Boolean(fix);
 
   if (!fix || !dest) {
     alignedRef.current = false;
+    arrivedRef.current = false;
     return {
       hasDestination,
       hasFix,
@@ -54,7 +59,10 @@ export function useNavigation(): NavDerived {
   const from: LatLon = fix;
   const bearingTrue = bearing(from, dest);
   const distanceM = distance(from, dest);
-  const hasArrived = distanceM <= ARRIVE_THRESHOLD_M;
+  const hasArrived = arrivedRef.current
+    ? distanceM <= ARRIVE_EXIT_M
+    : distanceM <= ARRIVE_THRESHOLD_M;
+  arrivedRef.current = hasArrived;
 
   let needle: number | null = null;
   let offsetDeg: number | null = null;

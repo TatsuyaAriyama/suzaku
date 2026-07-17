@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  朱雀 Suzaku ウィジェット拡張のプライバシーマニフェスト。
+  拡張バイナリも App Group の UserDefaults を読むため、本体とは別に必要
+  （各バイナリが「必要理由API」を個別に申告する）。
+
+  宣言内容:
+    - NSPrivacyTracking = false … トラッキングなし。
+    - NSPrivacyCollectedDataTypes = 空 … データ収集・送信なし（App Group から
+        目的地・距離を読むだけ。端末外へ送らない）。
+    - NSPrivacyAccessedAPITypes … UserDefaults(CA92.1): App Group 経由で
+        アプリが書いたスナップショットを読むために使用。
+-->
+<plist version="1.0">
+<dict>
+  <key>NSPrivacyTracking</key>
+  <false/>
+  <key>NSPrivacyTrackingDomains</key>
+  <array/>
+  <key>NSPrivacyCollectedDataTypes</key>
+  <array/>
+  <key>NSPrivacyAccessedAPITypes</key>
+  <array>
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+      <key>NSPrivacyAccessedAPITypeReasons</key>
+      <array>
+        <string>CA92.1</string>
+      </array>
+    </dict>
+  </array>
+</dict>
+</plist>

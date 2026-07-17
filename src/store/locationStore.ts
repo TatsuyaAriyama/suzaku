@@ -38,10 +38,14 @@ export const useLocation = create<LocationState>((set, get) => ({
     unsub = watchLocation(
       (f) => {
         const prev = get().fix;
-        // 移動閾値ベース: 精度が同等以上に良く、動きが小さいときは据え置き
+        // 移動閾値ベース: 精度が同等以上に良く、動きが小さいときは据え置き。
+        // prev.accuracy が 0（＝精度不明のフォールバック値）のときは据え置かない。
+        // さもないと accuracy が常に 0 の環境で最初の1点以降ずっと更新されず、
+        // 偏角(declination)も再計算されなくなる。
         if (
           prev &&
           distance(prev, f) < MOVE_THRESHOLD_M &&
+          prev.accuracy > 0 &&
           f.accuracy >= prev.accuracy
         ) {
           return;

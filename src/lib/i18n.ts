@@ -68,6 +68,8 @@ const strings = {
     poiSourceOsm: '検索: © OpenStreetMap contributors',
     glanceEnter: 'コンパクト表示にする',
     glanceExit: '通常表示に戻す',
+    compassUnavailable: 'コンパスを使うには方位センサーの許可が必要です',
+    signalLost: '現在地の電波が弱いようです…',
   },
   en: {
     setDestination: 'Choose a destination',
@@ -133,6 +135,8 @@ const strings = {
     poiSourceOsm: 'Search: © OpenStreetMap contributors',
     glanceEnter: 'Compact view',
     glanceExit: 'Full view',
+    compassUnavailable: 'Compass needs motion-sensor access',
+    signalLost: 'Weak location signal…',
   },
 } as const;
 

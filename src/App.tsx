@@ -40,11 +40,15 @@ export function App() {
     })();
   }, [hydrateDest, hydrateSettings]);
 
-  // オンボード完了後にセンサー購読を開始
+  // オンボード完了後にセンサー購読を開始。
+  // バックグラウンドで起動された場合（document.hidden）は開始せず、
+  // 前面化の visibilitychange で開始する（隠れたまま電池を使わない）。
   useEffect(() => {
     if (!ready || !onboarded) return;
-    startLoc();
-    startHeading();
+    if (!document.hidden) {
+      startLoc();
+      startHeading();
+    }
     return () => {
       stopLoc();
       stopHeading();
