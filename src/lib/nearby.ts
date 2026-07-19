@@ -30,6 +30,8 @@ export interface NearbyCategory {
    * 半径を詰めても失うものは無く、待ち時間だけが減る。
    */
   radiusM?: number;
+  /** filter に加えて OR で拾うタグ条件。種別をまたいで集めたいとき用。 */
+  extraFilters?: string[];
 }
 
 // 徒歩コンパスで「今すぐ向かいたい」場所を厳選。
@@ -39,7 +41,17 @@ export const NEARBY_CATEGORIES: NearbyCategory[] = [
     id: 'sights',
     ja: '観光スポット',
     en: 'Sights',
-    filter: '["tourism"~"^(attraction|museum|viewpoint|artwork|gallery)$"]',
+    // 商業施設まで含める。旅行者が渋谷で実際に向かうのはパルコ・109・
+    // ヒカリエ・スクランブルスクエアであって、郷土資料館ではない。
+    filter:
+      '["tourism"~"^(attraction|museum|viewpoint|artwork|gallery|theme_park)$"]',
+    // 渋谷スクランブルスクエアのように shop も tourism も持たず
+    // building=retail だけの大型施設がある。Wikidata 項目を持つものに
+    // 限れば、その辺の店舗ビルを巻き込まずに拾える。
+    extraFilters: [
+      '["shop"~"^(mall|department_store)$"]',
+      '["building"="retail"]["wikidata"]',
+    ],
     byNotability: true,
   },
   {
@@ -145,12 +157,16 @@ const RADIUS_M = 1500;
  * 浅草で「寺社」を開いたとき、名も無い祠が距離順に並ぶより、
  * 浅草寺・浅草神社が先に出てほしい——旅行者向けのアプリなので。
  *
+ * ただし弱めの補正に留めること。この指標は「日本語版 Wikipedia に項目がある
+ * 小さな郷土資料館」に強く、「Wikidata を持たない渋谷パルコや 109」に弱い。
+ * 重みを上げると、目の前の人が集まる場所より無名の資料館が上に来てしまう。
+ *
  * tourism=attraction は使わない。「観光スポット」カテゴリの絞り込み条件が
  * すでに attraction を含んでいるため、著名さではなく単に美術館や展望台より
  * attraction を優遇するだけの偏りになる。
  */
 function notability(tags: Record<string, string>): number {
-  return tags.wikidata || tags.wikipedia ? 2 : 0;
+  return tags.wikidata || tags.wikipedia ? 1 : 0;
 }
 
 async function runOverpass(
@@ -231,10 +247,10 @@ export async function searchNearby(
   // 967件あり、上限を付けると最寄り24件のうち18件が落ちていた（way は
   // 一件も届かない）。範囲は半径 1.5km で押さえてあるので、全件取って
   // こちらで距離順に並べる。
-  const query =
-    `[out:json][timeout:25];` +
-    `(node${f}${around};way${f}${around};relation${f}${around};);` +
-    `out center;`;
+  const parts = [f, ...(cat.extraFilters ?? [])]
+    .map((x) => `node${x}${around};way${x}${around};relation${x}${around};`)
+    .join('');
+  const query = `[out:json][timeout:25];(${parts});out center;`;
 
   const data = await runOverpass(query, signal);
 
@@ -250,6 +266,18 @@ export async function searchNearby(
     const tags = el.tags ?? {};
     const named = tags.name || tags['name:ja'] || tags['name:en'];
     if (!named && !cat.keepUnnamed) continue;
+    // tourism=attraction は誰でも気軽に付けられるタグで、
+    // 広告や落書きのようなノード（浅草の "Kaos murah" など）が紛れている。
+    // 裏付けが何も無いものは観光スポットとして出さない。
+    if (
+      cat.byNotability &&
+      tags.tourism === 'attraction' &&
+      !tags.wikidata &&
+      !tags.wikipedia &&
+      !tags.website &&
+      !tags['contact:website']
+    )
+      continue;
     out.push({
       named: !!named,
       place: {
@@ -274,10 +302,10 @@ export async function searchNearby(
     });
   }
   // 既定は近い順。観光スポットと寺社だけは著名さを混ぜる。
-  // 著名さ 1 点 ≒ 1km ぶんの近さ、という重みにしてある。こうしないと
-  // 1km 先の名所が目の前のハチ公像より上に来てしまう。
+  // 著名さ 1 点 ≒ 500m ぶんの近さ。目安として「500m 以内なら、
+  // 名前が知られていなくても近い方を先に出す」くらいの効き方にしている。
   const rank = (o: { place: Place; note: number }) =>
-    o.note - (o.place.distanceM ?? 0) / 1000;
+    o.note - (o.place.distanceM ?? 0) / 500;
   out.sort((a, b) => rank(b) - rank(a));
 
   // 名前の無い地物は畳まない。名前が無いものは表示名がカテゴリ名
