@@ -76,6 +76,27 @@ function sendHeading(w, alpha) {
 const q = (w, sel) => w.document.querySelector(sel);
 const hintText = (w) => (q(w, '.hint')?.textContent || '').trim();
 
+// 針は減衰付きで目標角へ追従するので、方位イベントが途切れるとその場で
+// 止まってしまう。総当たりの掃引は一瞬で終わるため、そのままだと針が
+// 目標に届かないまま凍結し、「右へ →」と出ているのに針は真上、という
+// 食い違った画になる。最終的な向きを送り続けて収束させること。
+// 待ちは setTimeout ではなく requestAnimationFrame で行うこと。撮影は
+// --virtual-time-budget 付きのヘッドレスで走り、仮想時計では setTimeout と
+// アニメーションの進み方が噛み合わない。針の減衰計算は rAF で回っているので、
+// 同じ時計に乗せないと目標角へ収束しないまま撮影されてしまう
+// （「右へ →」と出ているのに針は真上、という画になっていた）。
+const raf = (w) => new Promise((r) => w.requestAnimationFrame(r));
+
+// まったく同じ方位を送り続けても値が変わらず、更新が走らないため針は
+// 止まったままになる。ごく小さく振動させて更新を流し続ける（±0.15度なので
+// 見た目は目標角そのもの）。
+async function settle(w, alpha, frames = 150) {
+  for (let i = 0; i < frames; i++) {
+    sendHeading(w, alpha + (i % 2 ? 0.15 : -0.15));
+    await raf(w);
+  }
+}
+
 // 望む状態になる alpha を総当たりで探す（偏角や丸めを考えずに確実に当てる）
 async function findAlpha(w, ok) {
   for (let a = 0; a < 360; a += 1) {
@@ -117,18 +138,20 @@ async function run() {
     for (let i = 0; i < 150 && !q(w, '.results__list .result'); i++) await sleep(100);
     await sleep(600);
   } else if (SCREEN === 'aligned') {
-    await findAlpha(w, (ww) => !!q(ww, '.aligned-note'));
+    const a = await findAlpha(w, (ww) => !!q(ww, '.aligned-note'));
+    if (a != null) await settle(w, a);
     await sleep(700); // 整列時の色変化(400ms)を待つ
   } else if (SCREEN === 'compass') {
     // 「右へ →」の案内が出る向きにする
     const want = LANG === 'ja' ? '右へ' : 'Turn right';
-    await findAlpha(w, (ww) => hintText(ww).includes(want));
+    const a = await findAlpha(w, (ww) => hintText(ww).includes(want));
+    if (a != null) await settle(w, a);
     await sleep(600);
   } else if (SCREEN === 'glance') {
-    sendHeading(w, 300);
+    await settle(w, 300);
     await sleep(600);
   } else if (SCREEN === 'arrived') {
-    sendHeading(w, 300);
+    await settle(w, 300);
     await sleep(600);
   }
 
