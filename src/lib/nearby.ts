@@ -34,6 +34,22 @@ export interface NearbyCategory {
   extraFilters?: string[];
 }
 
+/**
+ * 例外的に「観光スポット」へ含める地物の Wikidata ID。
+ *
+ * 街角の彫刻や記念碑は原則として出さない（数が多く、作品として眺めるもので
+ * 目的地にならない）。ただしハチ公像のように、作品としてではなく
+ * 待ち合わせ場所・ランドマークとして機能しているものがある。
+ *
+ * OSM のタグでは「有名な像」と「そのへんの像」を区別できない——ハチ公像も
+ * 明日の神話も等しく tourism=artwork + Wikidata 項目つきで、差が出ない。
+ * そこでここだけは明示的に列挙する。東京に特化したアプリなので、
+ * 駅データを同梱しているのと同じ割り切りができる。
+ */
+const LANDMARK_WIKIDATA = [
+  'Q62124995', // 忠犬ハチ公像（渋谷）
+];
+
 // 徒歩コンパスで「今すぐ向かいたい」場所を厳選。
 // 東京に観光で来た人のためのアプリなので、観光スポットと寺社を先頭に置く。
 export const NEARBY_CATEGORIES: NearbyCategory[] = [
@@ -54,6 +70,7 @@ export const NEARBY_CATEGORIES: NearbyCategory[] = [
     extraFilters: [
       '["shop"~"^(mall|department_store)$"]',
       '["building"="retail"]["wikidata"]',
+      `["wikidata"~"^(${LANDMARK_WIKIDATA.join('|')})$"]`,
     ],
     byNotability: true,
   },
